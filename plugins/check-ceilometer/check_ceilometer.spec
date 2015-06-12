@@ -11,35 +11,26 @@ Vendor: Savoir-faire Linux
 Packager: Alexandre Viau <alexandre.viau@savoirfairelinux.com>
 BuildRoot:  %{_tmppath}/%{name}-%{version}
 #Requires: python, python-dlnetsnmp
+BuildRequires:  python-setuptools
 
 %description 
 Shinken plugin from SFL. A Nagios plug-in to use OpenStack Ceilometer API for metering
 
 %prep
-%setup -q -n %{raw_name}
+%setup -q -n check_ceilometer
 
-%pre
-getent group shinken >/dev/null || /usr/sbin/groupadd -r shinken
-getent passwd shinken >/dev/null || \
-/usr/sbin/useradd -r -g shinken -d  %{_libdir}/shinken/ -s /bin/bash \
--c "Shinken user" shinken
-exit 0
+%build
+%{__python} setup.py build
 
 %install
-%{__rm} -rf %{buildroot}
-%{__install} -d -m 755 %{buildroot}/%{_libdir}/shinken/plugins/
-%{__install} -d -m 755 %{buildroot}/%{_bindir}
-%{__cp} -pr check_ceilometer %{buildroot}/%{_libdir}/shinken/plugins/check_ceilometer
-
-%clean
-rm -rf $RPM_BUILD_ROOT
+rm -rf %{buildroot}
+%{__python} setup.py install -O1 --skip-build --root %{buildroot} --install-lib=%{python_sitelib}%doc
 
 %files
-%defattr(0644, shinken, shinken, 0755)
-%{_libdir}/shinken/
-%defattr(0755, shinken, shinken, 0755)
-%{_libdir}/shinken/plugins/check_ceilometer
-%doc
+%defattr(-,root,root,-)
+%{python_sitelib}/*.egg-info
+%dir %{python_sitelib}/check_ceilometer
+%{python_sitelib}/check_ceilometer/*
 
 %changelog
 * Fri Jun 12 2015 Flavien Peyre <flavien.peyre@savoirfairelinux.com>
